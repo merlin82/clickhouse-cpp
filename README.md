@@ -3,6 +3,9 @@ ClickHouse C++ client [![Build Status](https://travis-ci.org/artpaul/clickhouse-
 
 C++ client for [Yandex ClickHouse](https://clickhouse.yandex/)
 
+## This repositorie change
+* [Add InsertQuery and InsertData methods](https://github.com/aiwhj/clickhouse-cpp/commit/bab28bcb5a509d80b8e2e0c7e89512446283dde5)
+
 ## Supported data types
 
 * Array(T)
