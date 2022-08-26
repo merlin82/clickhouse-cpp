@@ -13,6 +13,7 @@
 #   include <winsock2.h>
 #   include <ws2tcpip.h>
 #else
+#   include <arpa/inet.h>
 #   include <sys/types.h>
 #   include <sys/socket.h>
 #   include <poll.h>
@@ -23,6 +24,7 @@
 #endif
 
 struct addrinfo;
+struct timeval;
 
 namespace clickhouse {
 
@@ -41,6 +43,18 @@ private:
     struct addrinfo* info_;
 };
 
+class SocketTimeoutParams {
+public:
+    explicit SocketTimeoutParams(unsigned int con_recv_timeout_sec, unsigned int con_send_timeout_sec);
+
+    const struct timeval& GetRecvTimeout();
+    const struct timeval& GetSendTimeout();
+
+private:
+    const struct timeval recv_timeout_;
+    const struct timeval send_timeout_;
+};
+
 
 class SocketHolder {
 public:
@@ -53,6 +67,13 @@ public:
     void Close() noexcept;
 
     bool Closed() const noexcept;
+
+    /// @params idle the time (in seconds) the connection needs to remain
+    ///         idle before TCP starts sending keepalive probes.
+    /// @params intvl the time (in seconds) between individual keepalive probes.
+    /// @params cnt the maximum number of keepalive probes TCP should send
+    ///         before dropping the connection.
+    void SetTcpKeepAlive(int idle, int intvl, int cnt) noexcept;
 
     SocketHolder& operator = (SocketHolder&& other) noexcept;
 
@@ -93,12 +114,12 @@ private:
     SOCKET s_;
 };
 
-static struct NetrworkInitializer {
-    NetrworkInitializer();
-} gNetrworkInitializer;
+static struct NetworkInitializer {
+    NetworkInitializer();
+} gNetworkInitializer;
 
 ///
-SOCKET SocketConnect(const NetworkAddress& addr);
+SOCKET SocketConnect(const NetworkAddress& addr, const SocketTimeoutParams& socket_timeout_params);
 
 ssize_t Poll(struct pollfd* fds, int nfds, int timeout) noexcept;
 
